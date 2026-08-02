@@ -51129,7 +51129,7 @@ async function download() {
   const target = currentTarget();
   const filename = `${arch}-${target}.tar.gz`;
   const downloadUrl =
-    `https://github.com/tombruijn/lintje/releases/download/v${LINTJE_VERSION}/${filename}`;
+    `https://github.com/lintje/lintje/releases/download/v${LINTJE_VERSION}/${filename}`;
   const response = await fetch(downloadUrl);
   if (!response.ok) {
     throw new Error(`Error while downloading Lintje archive: ${response.status} ${response.statusText}: ${response.body}`);
