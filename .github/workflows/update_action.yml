@@ -13,6 +13,8 @@ permissions:
 
 env:
   SOURCE_REPO: lintje/lintje
+  PUBLISH_GIT_USERNAME: "Lintje release bot"
+  PUBLISH_GIT_EMAIL: "lintje@tomdebruijn.com"
 
 jobs:
   update_action:
@@ -60,11 +62,25 @@ jobs:
           npm ci
           npm run build
 
+      - name: "Configure Git"
+        run: |
+          export PUBLISH_GIT_SSH_PATH="$HOME/.ssh"
+          export PUBLISH_GIT_SIGN_KEY_PATH="$HOME/.ssh/sign_key"
+          mkdir -p "$PUBLISH_GIT_SSH_PATH"
+          echo "${{secrets.PUBLISH_GIT_SIGN_KEY}}" > "$PUBLISH_GIT_SIGN_KEY_PATH"
+          echo "${{secrets.PUBLISH_GIT_SIGN_PUBLIC_KEY}}" > "$PUBLISH_GIT_SIGN_KEY_PATH.pub"
+          chmod 600 "$PUBLISH_GIT_SIGN_KEY_PATH"
+          git config --global user.name "$PUBLISH_GIT_USERNAME (as ${{github.actor}})"
+          git config --global user.email "$PUBLISH_GIT_EMAIL"
+          git config --global gpg.format ssh
+          git config --global commit.gpgsign true
+          touch ~/.ssh/allowed_signers
+          echo "$(git config --get user.email) namespaces=\"git\" $(cat $PUBLISH_GIT_SIGN_KEY_PATH.pub)" >> ~/.ssh/allowed_signers
+          git config --global user.signingkey "$PUBLISH_GIT_SIGN_KEY_PATH"
+
       - name: Commit and push changes
         id: commit
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
