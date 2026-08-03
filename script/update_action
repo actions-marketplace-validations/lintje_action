@@ -1,0 +1,55 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "fileutils"
+
+VERSION = ARGV[0]
+MINOR_VERSION = ARGV[1]
+CHECKSUMS_FILE = ARGV[2]
+
+REQUIRED_ARCHIVES = %w[
+  x86_64-apple-darwin.tar.gz
+  aarch64-apple-darwin.tar.gz
+  x86_64-unknown-linux-gnu.tar.gz
+  aarch64-unknown-linux-gnu.tar.gz
+  x86_64-unknown-linux-musl.tar.gz
+  aarch64-unknown-linux-musl.tar.gz
+  x86_64-pc-windows-gnu.tar.gz
+].freeze
+
+# Verify the checksum manifest contains a checksum for every supported target.
+manifest = File.read(CHECKSUMS_FILE)
+REQUIRED_ARCHIVES.each do |archive|
+  unless manifest.include?("  #{archive}")
+    abort "No checksum found for `#{archive}` in #{CHECKSUMS_FILE}"
+  end
+end
+
+# Update the Lintje version number the Action downloads.
+version_file = File.read("src/version.js")
+version_file = version_file.sub(
+  /const LINTJE_VERSION = ".*";/,
+  %(const LINTJE_VERSION = "#{VERSION}";)
+)
+File.write("src/version.js", version_file)
+
+# Update the checksums used to verify the downloaded Lintje archive.
+FileUtils.cp(CHECKSUMS_FILE, "checksums_256.txt")
+
+# Update the minor version number used to reference the Action in the README.
+readme = File.read("README.md")
+readme = readme.gsub(
+  /lintje\/action@v\d+\.\d+/,
+  "lintje/action@v#{MINOR_VERSION}"
+)
+File.write("README.md", readme)
+
+# Add a changelog entry for the new release.
+date = Time.now.utc.strftime("%Y-%m-%d")
+changelog = File.read("CHANGELOG.md")
+heading, rest = changelog.split("\n", 2)
+File.write(
+  "CHANGELOG.md",
+  "#{heading}\n\n## v#{VERSION} - #{date}\n\n" \
+    "- Update to Lintje #{VERSION}.\n\n#{rest.to_s.lstrip}"
+)

@@ -116,20 +116,15 @@ Lintje](https://lintje.dev/docs/configuration/).
 
 ## Development
 
-To update the Lintje GitHub Action to the latest Lintje release, follow these
-steps:
+To update the Lintje GitHub Action to a new Lintje release, run the
+["Update Lintje action"
+workflow](https://github.com/lintje/action/actions/workflows/update_action.yml)
+from the `main` branch with the version number of the Lintje release. The
+workflow will update the version number, the checksums, the `README.md` and
+`CHANGELOG.md` files, rebuild the Action and create the release and tags.
 
-- Update the `src/version.js` file to the new version number.
-- Update this `README.md` file to use the new version number.
-- Update the `checksums_256.txt` file with the file included in the new release.
-- Update the GitHub Action to match any changed behavior or add new config
-  options.
-- Update the `CHANGELOG.md` file with the latest changes.
-- Tag the new release in Git using the same version number: `git tag v#.#.#`
-- Tag the new release in Git using the minor version number: `git tag v#.#`
-- Push the updated GitHub Action branches with the multiple tags.
-- Create a new release on GitHub and publish the new release to the
-  GitHub marketplace.
+If the update requires changes to the Action's behavior or configuration,
+make those changes in a separate commit first.
 
 ## Code of Conduct
 

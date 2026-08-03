@@ -1,0 +1,93 @@
+name: Update Lintje action
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Lintje release version to use, with or without the leading v
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  SOURCE_REPO: lintje/lintje
+
+jobs:
+  update_action:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout action repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Normalize version
+        id: version
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          VERSION="${VERSION#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "minor=${VERSION%.*}" >> "$GITHUB_OUTPUT"
+
+      - name: Download checksum manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "${{ steps.version.outputs.tag }}" \
+            --repo "$SOURCE_REPO" \
+            --pattern checksums_256.txt \
+            --dir /tmp/lintje-release
+
+      - name: Update action files
+        run: |
+          ruby script/update_action \
+            "${{ steps.version.outputs.version }}" \
+            "${{ steps.version.outputs.minor }}" \
+            /tmp/lintje-release/checksums_256.txt
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: "npm"
+
+      - name: Build package
+        run: |
+          npm ci
+          npm run build
+
+      - name: Commit and push changes
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "Update to Lintje ${{ steps.version.outputs.version }}"
+          git push origin "HEAD:${{ github.ref_name }}"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Tag release
+        if: steps.commit.outputs.changed == 'true'
+        run: |
+          git tag "v${{ steps.version.outputs.version }}"
+          git tag -f "v${{ steps.version.outputs.minor }}"
+          git push origin "v${{ steps.version.outputs.version }}"
+          git push origin "v${{ steps.version.outputs.minor }}" --force
+
+      - name: Create GitHub release
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ steps.version.outputs.version }}" \
+            --title "v${{ steps.version.outputs.version }}" \
+            --notes "Update to Lintje ${{ steps.version.outputs.version }}."
