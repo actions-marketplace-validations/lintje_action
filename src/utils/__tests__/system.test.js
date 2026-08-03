@@ -44,7 +44,7 @@ describe("currentArchitecture", () => {
 
   test("when arch is unknown it throws an Error", () => {
     setArch("unknown");
-    expect(currentArchitecture).toThrowError("Unknown architecture \"unknown\"");
+    expect(currentArchitecture).toThrow("Unknown architecture \"unknown\"");
   });
 });
 
@@ -74,7 +74,7 @@ describe("currentTarget", () => {
   describe("when on an unknown platform", () => {
     test("throws an error", () => {
       setPlatform("unknown");
-      expect(currentTarget).toThrowError("Unknown platform \"unknown\"");
+      expect(currentTarget).toThrow("Unknown platform \"unknown\"");
     });
   });
 });
