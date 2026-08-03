@@ -108,3 +108,18 @@ jobs:
           gh release create "v${{ steps.version.outputs.version }}" \
             --title "v${{ steps.version.outputs.version }}" \
             --notes "Update to Lintje ${{ steps.version.outputs.version }}."
+
+      - name: "Add next steps to the workflow summary"
+        if: steps.commit.outputs.changed == 'true'
+        run: |
+          RELEASE_VERSION="${{ steps.version.outputs.version }}"
+
+          {
+            echo "## Next step: publish the Action to the GitHub Marketplace"
+            echo ""
+            echo "Publish the v${RELEASE_VERSION} release to the GitHub Marketplace " \
+              "by editing the release and selecting \"Publish this Action to the " \
+              "GitHub Marketplace\". Publishing requires two-factor authentication."
+            echo ""
+            echo "https://github.com/lintje/action/releases/v${RELEASE_VERSION}"
+          } >> "$GITHUB_STEP_SUMMARY"
