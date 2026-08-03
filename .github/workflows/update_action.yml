@@ -24,6 +24,7 @@ jobs:
       - name: Checkout action repository
         uses: actions/checkout@v7
         with:
+          ssh-key: "${{secrets.PUBLISH_DEPLOY_KEY}}"
           ref: ${{ github.ref_name }}
 
       - name: Normalize version
