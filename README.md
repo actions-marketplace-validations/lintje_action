@@ -126,6 +126,14 @@ workflow will update the version number, the checksums, the `README.md` and
 If the update requires changes to the Action's behavior or configuration,
 make those changes in a separate commit first.
 
+To publish a new release with only changes to the Action itself, e.g. when no
+new Lintje release is available, run the ["Release Lintje
+action" workflow](https://github.com/lintje/action/actions/workflows/release_action.yml)
+from the `main` branch with a version number in the
+`v<lintje-version>-<suffix>` format, e.g. `v0.11.3-4`. Add a `CHANGELOG.md`
+entry for the release version first. The workflow will rebuild the Action,
+create the release and tag.
+
 ## Code of Conduct
 
 This project has a [Code of Conduct](CODE_OF_CONDUCT.md) and contributors are
