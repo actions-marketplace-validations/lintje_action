@@ -1,5 +1,9 @@
 # Lintje changelog
 
+## v0.12.0 - 2026-08-05
+
+- Update to Lintje 0.12.0.
+
 ## v0.11.3-3 - 2025-02-21
 
 - Fix Pull Request events checking more commits than they should.
